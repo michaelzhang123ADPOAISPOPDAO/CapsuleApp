@@ -29,7 +29,7 @@ class NotificationService {
       await notifee.createTriggerNotification(
         {
           id: notificationId,
-          title: 'Capsule Unlocked! 📮',
+          title: 'Capsule Unlocked!',
           body: capsule.title || 'Your future message is ready to watch',
           android: {
             channelId: 'default',
