@@ -145,7 +145,7 @@ class StorageService {
         try {
           const path = `${MEDIA_DIR}/${capsule.filePath}`;
           const stat = await RNFS.stat(path);
-          usedSpace += parseInt(stat.size.toString());
+          usedSpace += parseInt(stat.size.toString(), 10);
         } catch (statError) {
           console.warn('Failed to get file stats for:', capsule.filePath);
         }

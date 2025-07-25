@@ -15,22 +15,15 @@ import RNFS from 'react-native-fs';
 import StorageService from '../services/StorageService';
 import NotificationService from '../services/NotificationService';
 import { CapsuleType } from '../types';
-import { COLORS, EMOTIONS } from '../constants';
+import { COLORS, EMOTIONS, TYPOGRAPHY, SPACING, LAYOUT } from '../constants';
 import { formatDuration } from '../utils/dateHelpers';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from '../components/Icon';
 import HapticFeedback from 'react-native-haptic-feedback';
 
-interface ReviewScreenProps {
-  route: {
-    params: {
-      path: string;
-      duration: number;
-      type: CapsuleType;
-      mediaType: 'video' | 'audio';
-    };
-  };
-  navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+
+type ReviewScreenProps = StackScreenProps<RootStackParamList, 'Review'>;
 
 const ReviewScreen: React.FC<ReviewScreenProps> = ({ route, navigation }) => {
   const { path, duration, type, mediaType } = route.params;
@@ -114,11 +107,11 @@ const ReviewScreen: React.FC<ReviewScreenProps> = ({ route, navigation }) => {
   const getTypeInfo = () => {
     switch (type) {
       case 'daily':
-        return { icon: '📝', title: 'Daily Capsule', color: '#E8F4FD' };
+        return { icon: 'daily', title: 'Daily Capsule', color: COLORS.daily };
       case 'future':
-        return { icon: '📮', title: 'Future Capsule', color: '#FFF4E6' };
+        return { icon: 'future', title: 'Future Capsule', color: COLORS.future };
       case 'lift':
-        return { icon: '💗', title: 'Lift Capsule', color: '#FFE4E6' };
+        return { icon: 'lift', title: 'Lift Capsule', color: COLORS.lift };
     }
   };
 
@@ -143,7 +136,7 @@ const ReviewScreen: React.FC<ReviewScreenProps> = ({ route, navigation }) => {
             />
           ) : (
             <View style={styles.audioPlayer}>
-              <Icon name="musical-notes" size={80} color={COLORS.primary} />
+              <Icon name="audio" size={80} color={COLORS.primary} />
               <Text style={styles.audioTitle}>Audio Recording</Text>
               <Text style={styles.duration}>{formatDuration(duration)}</Text>
             </View>
@@ -189,8 +182,9 @@ const ReviewScreen: React.FC<ReviewScreenProps> = ({ route, navigation }) => {
 
         {/* Metadata Section */}
         <View style={styles.metadataSection}>
-          <View style={[styles.typeHeader, { backgroundColor: typeInfo.color }]}>
-            <Text style={styles.typeIcon}>{typeInfo.icon}</Text>
+          <View style={styles.typeHeader}>
+            <View style={[styles.typeIndicator, { backgroundColor: typeInfo.color }]} />
+            <Icon name={typeInfo.icon} size={20} color={COLORS.textPrimary} />
             <Text style={styles.typeTitle}>{typeInfo.title}</Text>
           </View>
           
@@ -218,7 +212,7 @@ const ReviewScreen: React.FC<ReviewScreenProps> = ({ route, navigation }) => {
                 <Text style={styles.dateSelectorLabel}>Unlock Date</Text>
                 <View style={styles.dateSelectorValue}>
                   <Text style={styles.dateSelectorText}>{formatUnlockDate()}</Text>
-                  <Icon name="chevron-down" size={16} color={COLORS.accent} />
+                  <Icon name="chevron-forward" size={16} color={COLORS.textSecondary} />
                 </View>
               </TouchableOpacity>
             </View>
@@ -298,7 +292,7 @@ const ReviewScreen: React.FC<ReviewScreenProps> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: COLORS.background,
   },
   scrollContainer: {
     flex: 1,
@@ -320,16 +314,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#1C1C1E',
   },
   audioTitle: {
+    ...TYPOGRAPHY.heading,
     color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xs,
   },
   duration: {
+    ...TYPOGRAPHY.timestamp,
     color: COLORS.textSecondary,
-    fontSize: 16,
-    fontFamily: 'monospace',
   },
   playbackControls: {
     position: 'absolute',
@@ -361,62 +353,65 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   speedText: {
-    color: 'white',
+    ...TYPOGRAPHY.button,
     fontSize: 14,
-    fontWeight: '600',
+    color: 'white',
   },
   speedTextActive: {
     color: 'white',
   },
   metadataSection: {
-    backgroundColor: COLORS.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: LAYOUT.borderRadius * 3,
+    borderTopRightRadius: LAYOUT.borderRadius * 3,
     flex: 1,
-    paddingBottom: 100, // Space for action buttons
+    paddingBottom: 100,
   },
   typeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    marginBottom: 8,
+    padding: SPACING.screenPadding,
+    marginBottom: SPACING.xs,
+    gap: SPACING.sm,
   },
-  typeIcon: {
-    fontSize: 24,
-    marginRight: 12,
+  typeIndicator: {
+    width: 3,
+    height: 20,
   },
   typeTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.text,
+    ...TYPOGRAPHY.heading,
+    color: COLORS.textPrimary,
   },
   inputSection: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    paddingHorizontal: SPACING.screenPadding,
+    marginBottom: SPACING.lg,
   },
   inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 12,
+    ...TYPOGRAPHY.button,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
   },
   titleInput: {
+    ...TYPOGRAPHY.body,
     backgroundColor: COLORS.background,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    borderRadius: LAYOUT.borderRadius,
+    padding: SPACING.md,
+    color: COLORS.textPrimary,
   },
   dateSelector: {
     backgroundColor: COLORS.background,
-    borderRadius: 12,
-    padding: 16,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    borderRadius: LAYOUT.borderRadius,
+    padding: SPACING.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   dateSelectorLabel: {
-    fontSize: 16,
+    ...TYPOGRAPHY.body,
     color: COLORS.textSecondary,
   },
   dateSelectorValue: {
@@ -424,31 +419,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateSelectorText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.accent,
-    marginRight: 8,
+    ...TYPOGRAPHY.button,
+    color: COLORS.textPrimary,
+    marginRight: SPACING.xs,
   },
   emotionScroll: {
-    marginHorizontal: -20,
+    marginHorizontal: -SPACING.screenPadding,
   },
   emotionScrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.screenPadding,
   },
   emotionChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
     borderRadius: 20,
     backgroundColor: COLORS.background,
-    marginRight: 12,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    marginRight: SPACING.sm,
   },
   emotionChipActive: {
     backgroundColor: COLORS.primary,
   },
   emotionChipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text,
+    ...TYPOGRAPHY.caption,
+    fontFamily: 'Inter-Medium',
+    color: COLORS.textPrimary,
   },
   emotionChipTextActive: {
     color: 'white',
@@ -459,32 +455,28 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     flexDirection: 'row',
-    padding: 20,
-    gap: 16,
-    backgroundColor: COLORS.card,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
+    padding: SPACING.screenPadding,
+    gap: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderTopWidth: LAYOUT.borderWidth,
+    borderTopColor: COLORS.border,
   },
   discardButton: {
     flex: 1,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.textSecondary,
+    paddingVertical: SPACING.md,
+    borderRadius: LAYOUT.borderRadius,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
     alignItems: 'center',
   },
   discardText: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...TYPOGRAPHY.button,
     color: COLORS.textSecondary,
   },
   saveButton: {
     flex: 2,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    borderRadius: LAYOUT.borderRadius,
     backgroundColor: COLORS.primary,
     alignItems: 'center',
   },
@@ -492,8 +484,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   saveText: {
-    fontSize: 16,
-    fontWeight: '600',
+    ...TYPOGRAPHY.button,
     color: 'white',
   },
 });

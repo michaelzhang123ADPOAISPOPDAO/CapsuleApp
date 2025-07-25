@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   FlatList,
@@ -12,19 +12,14 @@ import {
 import { CapsuleCard } from '../components/CapsuleCard';
 import { EmptyState } from '../components/EmptyState';
 import StorageService from '../services/StorageService';
-import { Capsule, CapsuleType } from '../types';
-import { COLORS, EMOTIONS } from '../constants';
-import { formatUnlockDate } from '../utils/dateHelpers';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { Capsule } from '../types';
+import { COLORS, EMOTIONS, TYPOGRAPHY, SPACING, LAYOUT } from '../constants';
+import Icon from '../components/Icon';
 
-interface CategoryScreenProps {
-  route: {
-    params: {
-      type: CapsuleType;
-    };
-  };
-  navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+
+type CategoryScreenProps = StackScreenProps<RootStackParamList, 'Category'>;
 
 const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) => {
   const { type } = route.params;
@@ -34,16 +29,9 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'oldest'>('recent');
   const [filterBy, setFilterBy] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
-  useEffect(() => {
-    loadCapsules();
-  }, [type]);
-
-  useEffect(() => {
-    filterAndSort();
-  }, [capsules, searchQuery, sortBy, filterBy]);
-
-  const loadCapsules = async () => {
+  const loadCapsules = useCallback(async () => {
     try {
       const data = await StorageService.getCapsulesByType(type);
       
@@ -62,9 +50,9 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
     } catch (error) {
       console.error('Failed to load capsules:', error);
     }
-  };
+  }, [type]);
 
-  const filterAndSort = () => {
+  const filterAndSort = useCallback(() => {
     let filtered = [...capsules];
     
     // Search
@@ -95,7 +83,15 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
     });
     
     setFilteredCapsules(filtered);
-  };
+  }, [capsules, searchQuery, sortBy, filterBy, type]);
+
+  useEffect(() => {
+    loadCapsules();
+  }, [type, loadCapsules]);
+
+  useEffect(() => {
+    filterAndSort();
+  }, [capsules, searchQuery, sortBy, filterBy, filterAndSort]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -111,11 +107,11 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
     }
   };
 
-  const getIcon = () => {
+  const getIconName = () => {
     switch (type) {
-      case 'daily': return '📝';
-      case 'future': return '📮';
-      case 'lift': return '💗';
+      case 'daily': return 'daily';
+      case 'future': return 'future';
+      case 'lift': return 'lift';
     }
   };
 
@@ -155,7 +151,7 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => setSearchQuery('')}>
-            <Icon name="close-circle" size={20} color={COLORS.textSecondary} />
+            <Icon name="close" size={20} color={COLORS.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -166,11 +162,6 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
           style={styles.filterButton}
           onPress={() => setSortBy(sortBy === 'recent' ? 'oldest' : 'recent')}
         >
-          <Icon 
-            name={sortBy === 'recent' ? 'arrow-down' : 'arrow-up'} 
-            size={16} 
-            color={COLORS.accent} 
-          />
           <Text style={styles.filterText}>
             {sortBy === 'recent' ? 'Recent' : 'Oldest'}
           </Text>
@@ -181,12 +172,22 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
             style={styles.filterButton}
             onPress={nextFilter}
           >
-            <Icon name="filter" size={16} color={COLORS.accent} />
             <Text style={styles.filterText}>
               {getFilterDisplayText(filterBy)}
             </Text>
           </TouchableOpacity>
         )}
+        
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
+        >
+          <Icon 
+            name={viewMode === 'list' ? 'grid' : 'list'} 
+            size={16} 
+            color={COLORS.textSecondary} 
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Stats */}
@@ -208,11 +209,11 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Icon name="chevron-back" size={28} color={COLORS.accent} />
+          <Icon name="back" size={24} color={COLORS.textPrimary} />
         </TouchableOpacity>
         
         <View style={styles.navCenter}>
-          <Text style={styles.navIcon}>{getIcon()}</Text>
+          <Icon name={getIconName()} size={20} color={COLORS.textPrimary} />
           <Text style={styles.navTitle}>{getTitle()}</Text>
         </View>
         
@@ -228,6 +229,8 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
             onPress={() => navigation.navigate('Playback', { capsule: item })}
           />
         )}
+        numColumns={viewMode === 'grid' ? 2 : 1}
+        key={viewMode}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={<EmptyState type={type} searchQuery={searchQuery} />}
         refreshControl={
@@ -239,6 +242,7 @@ const CategoryScreen: React.FC<CategoryScreenProps> = ({ route, navigation }) =>
         }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        columnWrapperStyle={viewMode === 'grid' ? styles.gridRow : undefined}
       />
     </View>
   );
@@ -253,9 +257,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.screenPadding,
     paddingTop: 50,
-    paddingBottom: 16,
+    paddingBottom: SPACING.md,
     backgroundColor: COLORS.background,
   },
   backButton: {
@@ -266,72 +270,70 @@ const styles = StyleSheet.create({
   navCenter: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  navIcon: {
-    fontSize: 24,
-    marginRight: 8,
+    gap: SPACING.xs,
   },
   navTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.text,
+    ...TYPOGRAPHY.heading,
+    color: COLORS.textPrimary,
   },
   navRight: {
     width: 44,
   },
   header: {
-    padding: 20,
-    paddingTop: 0,
+    paddingHorizontal: SPACING.screenPadding,
+    paddingBottom: SPACING.md,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: COLORS.surface,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    borderRadius: LAYOUT.borderRadius,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   searchInput: {
+    ...TYPOGRAPHY.body,
     flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
-    color: COLORS.text,
+    marginLeft: SPACING.sm,
+    color: COLORS.textPrimary,
   },
   controls: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 12,
+    gap: SPACING.sm,
+    marginBottom: SPACING.sm,
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: COLORS.card,
+    gap: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    borderRadius: LAYOUT.borderRadius,
+    backgroundColor: COLORS.surface,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
   },
   filterText: {
-    color: COLORS.accent,
-    fontSize: 14,
-    fontWeight: '500',
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textPrimary,
   },
   stats: {
     alignItems: 'center',
   },
   statsText: {
-    fontSize: 14,
+    ...TYPOGRAPHY.timestamp,
     color: COLORS.textSecondary,
   },
   listContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingHorizontal: SPACING.screenPadding,
+    paddingBottom: SPACING.screenPadding,
+  },
+  gridRow: {
+    justifyContent: 'space-between',
   },
 });
 

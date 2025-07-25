@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { RootStackParamList } from './src/types/navigation';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
 
@@ -12,7 +13,7 @@ import PlaybackScreen from './src/screens/PlaybackScreen';
 import StorageService from './src/services/StorageService';
 import NotificationService from './src/services/NotificationService';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
   useEffect(() => {

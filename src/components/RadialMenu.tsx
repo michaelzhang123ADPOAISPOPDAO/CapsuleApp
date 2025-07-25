@@ -5,17 +5,16 @@ import {
   Text,
   StyleSheet,
   Animated,
-  Dimensions,
 } from 'react-native';
 import { CapsuleType } from '../types';
-import { COLORS } from '../constants';
+import { COLORS, TYPOGRAPHY, SPACING, LAYOUT } from '../constants';
+import Icon from './Icon';
 
 interface RadialMenuProps {
   onSelect: (type: CapsuleType) => void;
   onClose: () => void;
 }
 
-const { width, height } = Dimensions.get('window');
 
 export const RadialMenu: React.FC<RadialMenuProps> = ({ onSelect, onClose }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -25,7 +24,7 @@ export const RadialMenu: React.FC<RadialMenuProps> = ({ onSelect, onClose }) => 
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 200,
+        duration: LAYOUT.animationDuration,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
@@ -35,7 +34,7 @@ export const RadialMenu: React.FC<RadialMenuProps> = ({ onSelect, onClose }) => 
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, scaleAnim]);
 
   const handleSelect = (type: CapsuleType) => {
     Animated.timing(fadeAnim, {
@@ -65,11 +64,12 @@ export const RadialMenu: React.FC<RadialMenuProps> = ({ onSelect, onClose }) => 
         ]}
       >
         <TouchableOpacity
-          style={[styles.menuItem, styles.dailyItem]}
+          style={styles.menuItem}
           onPress={() => handleSelect('daily')}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
-          <Text style={styles.menuIcon}>📝</Text>
+          <View style={[styles.typeIndicator, { backgroundColor: COLORS.daily }]} />
+          <Icon name="daily" size={24} color={COLORS.textPrimary} />
           <View style={styles.menuTextContainer}>
             <Text style={styles.menuText}>Daily</Text>
             <Text style={styles.menuDescription}>Quick daily reflection</Text>
@@ -77,11 +77,12 @@ export const RadialMenu: React.FC<RadialMenuProps> = ({ onSelect, onClose }) => 
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.menuItem, styles.futureItem]}
+          style={styles.menuItem}
           onPress={() => handleSelect('future')}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
-          <Text style={styles.menuIcon}>📮</Text>
+          <View style={[styles.typeIndicator, { backgroundColor: COLORS.future }]} />
+          <Icon name="future" size={24} color={COLORS.textPrimary} />
           <View style={styles.menuTextContainer}>
             <Text style={styles.menuText}>Future</Text>
             <Text style={styles.menuDescription}>Message to future self</Text>
@@ -89,11 +90,12 @@ export const RadialMenu: React.FC<RadialMenuProps> = ({ onSelect, onClose }) => 
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.menuItem, styles.liftItem]}
+          style={styles.menuItem}
           onPress={() => handleSelect('lift')}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
-          <Text style={styles.menuIcon}>💗</Text>
+          <View style={[styles.typeIndicator, { backgroundColor: COLORS.lift }]} />
+          <Icon name="lift" size={24} color={COLORS.textPrimary} />
           <View style={styles.menuTextContainer}>
             <Text style={styles.menuText}>Lift</Text>
             <Text style={styles.menuDescription}>Emotional support</Text>
@@ -116,46 +118,37 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     width: 320,
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 20,
+    backgroundColor: COLORS.surface,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    borderRadius: LAYOUT.borderRadius * 2,
+    padding: SPACING.screenPadding,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 12,
+    padding: SPACING.lg,
+    borderRadius: LAYOUT.borderRadius,
+    marginBottom: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    gap: SPACING.md,
   },
-  dailyItem: {
-    backgroundColor: '#E8F4FD',
-  },
-  futureItem: {
-    backgroundColor: '#FFF4E6',
-  },
-  liftItem: {
-    backgroundColor: '#FFE4E6',
-  },
-  menuIcon: {
-    fontSize: 28,
-    marginRight: 16,
+  typeIndicator: {
+    width: 3,
+    height: 24,
   },
   menuTextContainer: {
     flex: 1,
   },
   menuText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
+    ...TYPOGRAPHY.heading,
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   menuDescription: {
-    fontSize: 14,
+    ...TYPOGRAPHY.caption,
     color: COLORS.textSecondary,
   },
 });

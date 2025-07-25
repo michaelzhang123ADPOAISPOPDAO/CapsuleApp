@@ -10,21 +10,16 @@ import {
 } from 'react-native';
 import Video from 'react-native-video';
 import AudioRecorderPlayer from 'react-native-audio-recorder-player';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { Capsule } from '../types';
-import { COLORS } from '../constants';
+import Icon from '../components/Icon';
+import { COLORS, TYPOGRAPHY } from '../constants';
 import { formatDate, formatDuration, formatUnlockDate } from '../utils/dateHelpers';
 import StorageService from '../services/StorageService';
 import HapticFeedback from 'react-native-haptic-feedback';
 
-interface PlaybackScreenProps {
-  route: {
-    params: {
-      capsule: Capsule;
-    };
-  };
-  navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+
+type PlaybackScreenProps = StackScreenProps<RootStackParamList, 'Playback'>;
 
 const audioPlayer = AudioRecorderPlayer;
 
@@ -38,7 +33,7 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
   const [audioDuration, setAudioDuration] = useState(capsule.duration);
   
   const videoRef = useRef<any>(null);
-  const hideControlsTimer = useRef<NodeJS.Timeout>();
+  const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-hide controls for video
   const resetHideControlsTimer = () => {
@@ -133,11 +128,11 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
   const getTypeInfo = () => {
     switch (capsule.type) {
       case 'daily':
-        return { icon: '📝', title: 'Daily Capsule', color: '#E8F4FD' };
+        return { icon: 'daily', title: 'Daily Capsule' };
       case 'future':
-        return { icon: '📮', title: 'Future Capsule', color: '#FFF4E6' };
+        return { icon: 'future', title: 'Future Capsule' };
       case 'lift':
-        return { icon: '💗', title: 'Lift Capsule', color: '#FFE4E6' };
+        return { icon: 'lift', title: 'Lift Capsule' };
     }
   };
 
@@ -168,7 +163,7 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
         ) : (
           <View style={styles.audioVisualization}>
             <Icon 
-              name="musical-notes" 
+              name="audio" 
               size={120} 
               color={COLORS.primary} 
             />
@@ -206,11 +201,11 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
               onPress={() => navigation.goBack()}
               style={styles.topButton}
             >
-              <Icon name="chevron-back" size={28} color="white" />
+              <Icon name="back" size={24} color="white" />
             </TouchableOpacity>
             
             <View style={styles.topCenter}>
-              <Text style={styles.topIcon}>{typeInfo.icon}</Text>
+              <Icon name={typeInfo.icon} size={20} color="white" />
               <Text style={styles.topTitle}>{typeInfo.title}</Text>
             </View>
             
@@ -218,7 +213,7 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
               onPress={handleShare}
               style={styles.topButton}
             >
-              <Icon name="share-outline" size={24} color="white" />
+              <Icon name="share" size={20} color="white" />
             </TouchableOpacity>
           </View>
 
@@ -282,7 +277,7 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
                 onPress={handleDelete}
                 style={styles.deleteButton}
               >
-                <Icon name="trash-outline" size={24} color="#FF3B30" />
+                <Icon name="delete" size={20} color="#FF3B30" />
               </TouchableOpacity>
             </View>
 
@@ -328,9 +323,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   audioTitle: {
-    color: 'white',
+    ...TYPOGRAPHY.heading,
     fontSize: 24,
-    fontWeight: '600',
+    color: 'white',
     textAlign: 'center',
     marginTop: 24,
     marginBottom: 40,
@@ -366,15 +361,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-  },
-  topIcon: {
-    fontSize: 20,
-    marginRight: 8,
+    gap: 8,
   },
   topTitle: {
+    ...TYPOGRAPHY.button,
     color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
   bottomControls: {
     position: 'absolute',
@@ -390,9 +381,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   metadataTitle: {
+    ...TYPOGRAPHY.heading,
     color: 'white',
-    fontSize: 18,
-    fontWeight: '600',
     marginBottom: 8,
   },
   metadataRow: {
@@ -401,8 +391,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   metadataText: {
+    ...TYPOGRAPHY.caption,
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 14,
   },
   unlockInfo: {
     color: COLORS.success,
@@ -423,9 +413,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   speedText: {
-    color: 'white',
+    ...TYPOGRAPHY.button,
     fontSize: 14,
-    fontWeight: '600',
+    color: 'white',
   },
   playButton: {
     width: 64,
@@ -460,9 +450,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   timeText: {
+    ...TYPOGRAPHY.timestamp,
     color: 'white',
-    fontSize: 14,
-    fontFamily: 'monospace',
     minWidth: 40,
     textAlign: 'center',
   },

@@ -10,20 +10,14 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevices } from 'react-native-vision-camera';
 import { useRecording } from '../hooks/useRecording';
-import { TimerDisplay } from '../components/TimerDisplay';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { CapsuleType } from '../types';
+import Icon from '../components/Icon';
 import { COLORS, MAX_RECORDING_DURATION } from '../constants';
 import HapticFeedback from 'react-native-haptic-feedback';
 
-interface RecordingScreenProps {
-  route: {
-    params: {
-      type: CapsuleType;
-    };
-  };
-  navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+
+type RecordingScreenProps = StackScreenProps<RootStackParamList, 'Recording'>;
 
 const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) => {
   const { type } = route.params;
@@ -31,7 +25,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
   const [cameraPosition, setCameraPosition] = useState<'front' | 'back'>('front');
   const camera = useRef<Camera>(null);
   const devices = useCameraDevices();
-  const device = devices?.[cameraPosition];
+  const device = devices.find(d => d.position === cameraPosition);
   
   const { 
     isRecording, 
@@ -47,6 +41,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
     if (duration >= MAX_RECORDING_DURATION) {
       handleStopRecording();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration]);
 
   useEffect(() => {
@@ -69,6 +64,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
     } else {
       audioVisualizerScale.setValue(1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecording, isVideo]);
 
   const handleStartRecording = async () => {
@@ -114,15 +110,17 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
   };
 
   const handleRecordButtonPressIn = () => {
-    Animated.spring(recordButtonScale, {
-      toValue: 0.95,
+    Animated.timing(recordButtonScale, {
+      toValue: 0.97,
+      duration: 100,
       useNativeDriver: true,
     }).start();
   };
 
   const handleRecordButtonPressOut = () => {
-    Animated.spring(recordButtonScale, {
+    Animated.timing(recordButtonScale, {
       toValue: 1,
+      duration: 100,
       useNativeDriver: true,
     }).start();
   };
@@ -152,12 +150,19 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
   const getTypeInfo = () => {
     switch (type) {
       case 'daily':
-        return { icon: '📝', title: 'Daily Capsule' };
+        return { icon: 'daily', title: 'Daily Capsule' };
       case 'future':
-        return { icon: '📮', title: 'Future Capsule' };
+        return { icon: 'future', title: 'Future Capsule' };
       case 'lift':
-        return { icon: '💗', title: 'Lift Capsule' };
+        return { icon: 'lift', title: 'Lift Capsule' };
     }
+  };
+
+  // Format time without leading zeros for warmth
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const typeInfo = getTypeInfo();
@@ -195,12 +200,17 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
             ]}
           >
             <Icon 
-              name="mic" 
-              size={80} 
-              color={isRecording ? COLORS.primary : COLORS.textSecondary} 
+              name="audio" 
+              size={60} 
+              color={COLORS.surface} 
             />
+            <Text style={styles.audioText}>Audio Recording</Text>
             {isRecording && (
-              <Text style={styles.audioRecordingText}>Recording Audio...</Text>
+              <View style={styles.audioDots}>
+                <View style={[styles.dot, styles.dot1]} />
+                <View style={[styles.dot, styles.dot2]} />
+                <View style={[styles.dot, styles.dot3]} />
+              </View>
             )}
           </Animated.View>
         </View>
@@ -213,7 +223,7 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
         </TouchableOpacity>
         
         <View style={styles.typeIndicator}>
-          <Text style={styles.typeIcon}>{typeInfo.icon}</Text>
+          <Icon name={typeInfo.icon} size={20} color="white" />
           <Text style={styles.typeTitle}>{typeInfo.title}</Text>
         </View>
         
@@ -222,11 +232,11 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
 
       {/* Timer */}
       <View style={styles.timerContainer}>
-        <TimerDisplay 
-          duration={duration} 
-          maxDuration={MAX_RECORDING_DURATION}
-          isRecording={isRecording}
-        />
+        <View style={styles.timerBubble}>
+          <Text style={styles.timerText}>
+            {formatTime(duration)} / 10:00
+          </Text>
+        </View>
       </View>
 
       {/* Controls */}
@@ -237,9 +247,9 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
           disabled={isRecording}
         >
           <Icon 
-            name={isVideo ? 'videocam' : 'mic'} 
-            size={30} 
-            color={isRecording ? '#666' : 'white'} 
+            name={isVideo ? 'video' : 'audio'} 
+            size={24} 
+            color={isRecording ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} 
           />
         </TouchableOpacity>
 
@@ -262,9 +272,9 @@ const RecordingScreen: React.FC<RecordingScreenProps> = ({ route, navigation }) 
             disabled={isRecording}
           >
             <Icon 
-              name="camera-reverse" 
-              size={30} 
-              color={isRecording ? '#666' : 'white'} 
+              name="flip" 
+              size={24} 
+              color={isRecording ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} 
             />
           </TouchableOpacity>
         ) : (
@@ -298,11 +308,31 @@ const styles = StyleSheet.create({
   audioVisualizer: {
     alignItems: 'center',
   },
-  audioRecordingText: {
-    color: 'white',
+  audioText: {
+    color: COLORS.surface,
     fontSize: 18,
-    marginTop: 20,
+    marginTop: 16,
     fontWeight: '500',
+  },
+  audioDots: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.surface,
+  },
+  dot1: {
+    opacity: 0.4,
+  },
+  dot2: {
+    opacity: 0.7,
+  },
+  dot3: {
+    opacity: 1,
   },
   topBar: {
     position: 'absolute',
@@ -330,10 +360,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-  },
-  typeIcon: {
-    fontSize: 20,
-    marginRight: 8,
+    gap: 8,
   },
   typeTitle: {
     color: 'white',
@@ -350,6 +377,18 @@ const styles = StyleSheet.create({
     right: 0,
     alignItems: 'center',
     zIndex: 10,
+  },
+  timerBubble: {
+    backgroundColor: COLORS.overlay,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  timerText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'SpaceMono-Regular',
+    fontWeight: '500',
   },
   controls: {
     position: 'absolute',
@@ -381,10 +420,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 4,
     borderColor: 'white',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
   recordButtonActive: {
     backgroundColor: '#FF3B3B',

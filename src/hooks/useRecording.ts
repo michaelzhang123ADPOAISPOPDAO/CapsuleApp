@@ -9,8 +9,8 @@ const audioRecorder = AudioRecorderPlayer;
 export const useRecording = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout>();
-  const recordingPath = useRef<string>();
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingPath = useRef<string | null>(null);
   const cameraRef = useRef<Camera | null>(null);
 
   useEffect(() => {
@@ -68,6 +68,7 @@ export const useRecording = () => {
       console.error('Failed to start recording:', error);
       throw error;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stopRecording = useCallback(async () => {
@@ -90,6 +91,10 @@ export const useRecording = () => {
       }
 
       setIsRecording(false);
+      
+      if (!finalPath) {
+        throw new Error('Recording path is null');
+      }
       
       return {
         path: finalPath,
@@ -131,6 +136,7 @@ export const useRecording = () => {
     } catch (error) {
       console.error('Failed to resume recording:', error);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

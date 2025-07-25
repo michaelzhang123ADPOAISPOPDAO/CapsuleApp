@@ -13,12 +13,13 @@ import { usePermissions } from '../hooks/usePermissions';
 import { RadialMenu } from '../components/RadialMenu';
 import HapticFeedback from 'react-native-haptic-feedback';
 import { CapsuleType } from '../types';
-import { COLORS } from '../constants';
+import { COLORS, TYPOGRAPHY, SPACING, LAYOUT } from '../constants';
 import { formatDate, formatUnlockDate } from '../utils/dateHelpers';
 
-interface MainScreenProps {
-  navigation: any;
-}
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParamList } from '../types/navigation';
+
+type MainScreenProps = StackScreenProps<RootStackParamList, 'Main'>;
 
 const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   const [showRadialMenu, setShowRadialMenu] = useState(false);
@@ -29,18 +30,20 @@ const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
   React.useEffect(() => {
     // Check for newly unlocked capsules when screen loads
     checkUnlockedCapsules();
-  }, []);
+  }, [checkUnlockedCapsules]);
 
   const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
+    Animated.timing(scaleAnim, {
+      toValue: 0.97,
+      duration: 100,
       useNativeDriver: true,
     }).start();
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
+    Animated.timing(scaleAnim, {
       toValue: 1,
+      duration: 100,
       useNativeDriver: true,
     }).start();
   };
@@ -112,51 +115,55 @@ const MainScreen: React.FC<MainScreenProps> = ({ navigation }) => {
         <TouchableOpacity
           style={styles.categoryCard}
           onPress={() => navigation.navigate('Category', { type: 'daily' })}
-          activeOpacity={0.7}
+          activeOpacity={0.9}
         >
-          <View style={styles.categoryHeader}>
-            <Text style={styles.categoryIcon}>📝</Text>
-            <Text style={styles.categoryTitle}>Daily ({capsuleCounts.daily})</Text>
-          </View>
-          {latestCapsules.daily ? (
-            <Text style={styles.categoryPreview} numberOfLines={1}>
-              {latestCapsules.daily.title || formatDate(latestCapsules.daily.createdAt)}
+          <View style={[styles.typeIndicator, { backgroundColor: COLORS.daily }]} />
+          <View style={styles.cardContent}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Daily</Text>
+              <Text style={styles.cardCount}>{capsuleCounts.daily}</Text>
+            </View>
+            <Text style={styles.cardMeta}>
+              {latestCapsules.daily 
+                ? `Last: ${formatDate(latestCapsules.daily.createdAt)}`
+                : 'Nothing here yet'
+              }
             </Text>
-          ) : (
-            <Text style={styles.categoryPreview}>No daily capsules yet</Text>
-          )}
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.categoryCard}
           onPress={() => navigation.navigate('Category', { type: 'future' })}
-          activeOpacity={0.7}
+          activeOpacity={0.9}
         >
-          <View style={styles.categoryHeader}>
-            <Text style={styles.categoryIcon}>📮</Text>
-            <Text style={styles.categoryTitle}>Future ({capsuleCounts.future})</Text>
+          <View style={[styles.typeIndicator, { backgroundColor: COLORS.future }]} />
+          <View style={styles.cardContent}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Future</Text>
+              <Text style={styles.cardCount}>{capsuleCounts.future}</Text>
+            </View>
+            <Text style={styles.cardMeta}>
+              {getNextUnlock() || 'No scheduled messages'}
+            </Text>
           </View>
-          <Text style={styles.categoryPreview} numberOfLines={1}>
-            {getNextUnlock() || 'No scheduled messages'}
-          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.categoryCard}
           onPress={() => navigation.navigate('Category', { type: 'lift' })}
-          activeOpacity={0.7}
+          activeOpacity={0.9}
         >
-          <View style={styles.categoryHeader}>
-            <Text style={styles.categoryIcon}>💗</Text>
-            <Text style={styles.categoryTitle}>Lift ({capsuleCounts.lift})</Text>
-          </View>
-          {latestCapsules.lift ? (
-            <Text style={styles.categoryPreview} numberOfLines={1}>
-              {latestCapsules.lift.emotion || 'Latest lift capsule'}
+          <View style={[styles.typeIndicator, { backgroundColor: COLORS.lift }]} />
+          <View style={styles.cardContent}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Lift</Text>
+              <Text style={styles.cardCount}>{capsuleCounts.lift}</Text>
+            </View>
+            <Text style={styles.cardMeta}>
+              {latestCapsules.lift?.emotion || 'Nothing here yet'}
             </Text>
-          ) : (
-            <Text style={styles.categoryPreview}>No lift capsules yet</Text>
-          )}
+          </View>
         </TouchableOpacity>
       </ScrollView>
 
@@ -178,79 +185,79 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: SPACING.screenPadding,
+    paddingBottom: SPACING.lg,
     alignItems: 'center',
   },
   headerTitle: {
+    ...TYPOGRAPHY.heading,
     fontSize: 32,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 8,
+    fontFamily: 'Inter-Medium',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
   },
   headerSubtitle: {
-    fontSize: 16,
+    ...TYPOGRAPHY.body,
     color: COLORS.textSecondary,
   },
   recordButtonContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingHorizontal: SPACING.screenPadding,
+    paddingBottom: SPACING.xl,
   },
   recordButton: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 25,
-    borderRadius: 30,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    height: 64,
+    borderRadius: LAYOUT.borderRadius,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   recordButtonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 4,
+    ...TYPOGRAPHY.button,
+    fontSize: 18,
+    color: '#FFFFFF',
   },
   recordButtonHint: {
-    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 14,
-    fontWeight: '400',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 4,
   },
   categoryList: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.screenPadding,
   },
   categoryCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  categoryHeader: {
+    backgroundColor: COLORS.surface,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    borderRadius: LAYOUT.borderRadius,
     flexDirection: 'row',
+    overflow: 'hidden',
+    marginBottom: SPACING.cardGap,
+  },
+  typeIndicator: {
+    width: 3,
+  },
+  cardContent: {
+    flex: 1,
+    padding: SPACING.lg,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: SPACING.xs,
   },
-  categoryIcon: {
-    fontSize: 24,
-    marginRight: 12,
+  cardTitle: {
+    ...TYPOGRAPHY.heading,
+    color: COLORS.textPrimary,
   },
-  categoryTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  categoryPreview: {
-    fontSize: 14,
+  cardCount: {
+    ...TYPOGRAPHY.heading,
     color: COLORS.textSecondary,
-    marginLeft: 36,
+  },
+  cardMeta: {
+    ...TYPOGRAPHY.timestamp,
+    color: COLORS.textSecondary,
   },
 });
 

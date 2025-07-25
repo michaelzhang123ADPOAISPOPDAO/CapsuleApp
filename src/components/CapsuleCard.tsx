@@ -1,40 +1,33 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from './Icon';
 import { CapsuleCardProps } from '../types';
-import { COLORS } from '../constants';
+import { COLORS, TYPOGRAPHY, SPACING, LAYOUT } from '../constants';
 import { formatDate, formatDuration, formatUnlockDate } from '../utils/dateHelpers';
 
 export const CapsuleCard: React.FC<CapsuleCardProps> = ({ capsule, onPress }) => {
   const getTypeColor = () => {
     switch (capsule.type) {
-      case 'daily': return '#E8F4FD';
-      case 'future': return '#FFF4E6';
-      case 'lift': return '#FFE4E6';
+      case 'daily': return COLORS.daily;
+      case 'future': return COLORS.future;
+      case 'lift': return COLORS.lift;
     }
   };
 
-  const getTypeIcon = () => {
-    switch (capsule.type) {
-      case 'daily': return '📝';
-      case 'future': return '📮';
-      case 'lift': return '💗';
-    }
-  };
 
   const getStatusInfo = () => {
     if (capsule.type === 'future') {
       if (!capsule.isUnlocked && capsule.unlockDate) {
         return {
           text: formatUnlockDate(capsule.unlockDate),
-          icon: 'lock-closed',
-          color: COLORS.warning,
+          icon: 'lock',
+          color: COLORS.secondary,
         };
       } else {
         return {
           text: 'Unlocked',
-          icon: 'lock-open',
-          color: COLORS.success,
+          icon: 'lock',
+          color: COLORS.primary,
         };
       }
     }
@@ -47,12 +40,10 @@ export const CapsuleCard: React.FC<CapsuleCardProps> = ({ capsule, onPress }) =>
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.9}
       disabled={capsule.type === 'future' && !capsule.isUnlocked}
     >
-      <View style={[styles.typeIndicator, { backgroundColor: getTypeColor() }]}>
-        <Text style={styles.typeIcon}>{getTypeIcon()}</Text>
-      </View>
+      <View style={[styles.typeIndicator, { backgroundColor: getTypeColor() }]} />
 
       <View style={styles.content}>
         <View style={styles.header}>
@@ -61,7 +52,7 @@ export const CapsuleCard: React.FC<CapsuleCardProps> = ({ capsule, onPress }) =>
           </Text>
           <View style={styles.metadata}>
             <Icon 
-              name={capsule.mediaType === 'video' ? 'videocam' : 'mic'} 
+              name={capsule.mediaType === 'video' ? 'video' : 'audio'} 
               size={16} 
               color={COLORS.textSecondary} 
             />
@@ -83,13 +74,15 @@ export const CapsuleCard: React.FC<CapsuleCardProps> = ({ capsule, onPress }) =>
           )}
           
           {statusInfo && (
-            <View style={[styles.statusTag, { backgroundColor: statusInfo.color }]}>
+            <View style={styles.statusIndicator}>
               <Icon 
                 name={statusInfo.icon} 
                 size={12} 
-                color="white" 
+                color={statusInfo.color} 
               />
-              <Text style={styles.statusText}>{statusInfo.text}</Text>
+              <Text style={[styles.statusText, { color: statusInfo.color }]}>
+                {statusInfo.text}
+              </Text>
             </View>
           )}
         </View>
@@ -109,43 +102,32 @@ export const CapsuleCard: React.FC<CapsuleCardProps> = ({ capsule, onPress }) =>
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: COLORS.surface,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    borderRadius: LAYOUT.borderRadius,
+    overflow: 'hidden',
+    marginBottom: SPACING.cardGap,
   },
   typeIndicator: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  typeIcon: {
-    fontSize: 24,
+    width: 3,
   },
   content: {
     flex: 1,
+    padding: LAYOUT.cardPadding,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: SPACING.xs,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
+    ...TYPOGRAPHY.body,
+    fontFamily: 'Inter-SemiBold',
+    color: COLORS.textPrimary,
     flex: 1,
-    marginRight: 12,
+    marginRight: SPACING.sm,
   },
   metadata: {
     flexDirection: 'row',
@@ -153,45 +135,42 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   duration: {
-    fontSize: 14,
+    ...TYPOGRAPHY.timestamp,
     color: COLORS.textSecondary,
-    fontFamily: 'monospace',
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: SPACING.xs,
   },
   date: {
-    fontSize: 14,
+    ...TYPOGRAPHY.timestamp,
     color: COLORS.textSecondary,
   },
   emotionTag: {
-    paddingHorizontal: 8,
+    paddingHorizontal: SPACING.xs,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: COLORS.background,
+    borderWidth: LAYOUT.borderWidth,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
   },
   emotionText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: COLORS.text,
+    ...TYPOGRAPHY.caption,
+    fontFamily: 'Inter-Medium',
+    color: COLORS.textPrimary,
   },
-  statusTag: {
+  statusIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: 'white',
+    ...TYPOGRAPHY.caption,
+    fontFamily: 'Inter-Medium',
   },
   arrow: {
+    paddingLeft: SPACING.sm,
     justifyContent: 'center',
-    marginLeft: 8,
   },
 });

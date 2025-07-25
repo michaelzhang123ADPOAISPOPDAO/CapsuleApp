@@ -1,4 +1,4 @@
-import notifee from '@notifee/react-native';
+import notifee, { TriggerType } from '@notifee/react-native';
 import { Capsule } from '../types';
 import { NOTIFICATION_IDS } from '../constants';
 
@@ -43,7 +43,7 @@ class NotificationService {
           },
         },
         {
-          type: 'timestamp' as const,
+          type: TriggerType.TIMESTAMP,
           timestamp: capsule.unlockDate,
         }
       );

@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Camera } from 'react-native-vision-camera';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import { Platform } from 'react-native';
 
 export const usePermissions = () => {
   const [cameraPermission, setCameraPermission] = useState<string>('not-determined');
