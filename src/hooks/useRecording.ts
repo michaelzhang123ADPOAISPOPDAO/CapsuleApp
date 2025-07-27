@@ -1,10 +1,19 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Camera } from 'react-native-vision-camera';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+import AudioRecord from 'react-native-audio-record';
 import RNFS from 'react-native-fs';
 import { MAX_RECORDING_DURATION } from '../constants';
 
-const audioRecorder = AudioRecorderPlayer;
+// Configure AudioRecord
+const options = {
+  sampleRate: 16000,
+  channels: 1,
+  bitsPerSample: 16,
+  audioSource: 6, // VOICE_RECOGNITION
+  wavFile: 'temp_audio.wav'
+};
+
+AudioRecord.init(options);
 
 export const useRecording = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -45,7 +54,7 @@ export const useRecording = () => {
         });
       } else {
         // For audio recording
-        await audioRecorder.startRecorder(path, {});
+        AudioRecord.start();
       }
 
       // Start timer
@@ -86,7 +95,8 @@ export const useRecording = () => {
           await cameraRef.current.stopRecording();
         } else {
           // Stop audio recording
-          await audioRecorder.stopRecorder();
+          const audioPath = await AudioRecord.stop();
+          finalPath = audioPath;
         }
       }
 
@@ -112,8 +122,8 @@ export const useRecording = () => {
         clearInterval(intervalRef.current);
       }
       
-      // Note: Camera doesn't support pause, so this is mainly for audio
-      await audioRecorder.pauseRecorder();
+      // Note: react-native-audio-record doesn't support pause/resume
+      console.log('Pause not supported with react-native-audio-record');
     } catch (error) {
       console.error('Failed to pause recording:', error);
     }
@@ -121,22 +131,11 @@ export const useRecording = () => {
 
   const resumeRecording = useCallback(async () => {
     try {
-      await audioRecorder.resumeRecorder();
-      
-      // Resume timer
-      intervalRef.current = setInterval(() => {
-        setDuration(prev => {
-          const newDuration = prev + 1;
-          if (newDuration >= MAX_RECORDING_DURATION) {
-            stopRecording();
-          }
-          return newDuration;
-        });
-      }, 1000);
+      // Note: react-native-audio-record doesn't support pause/resume
+      console.log('Resume not supported with react-native-audio-record');
     } catch (error) {
       console.error('Failed to resume recording:', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

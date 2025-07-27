@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Share,
 } from 'react-native';
 import Video from 'react-native-video';
-// import AudioRecorderPlayer from 'react-native-audio-recorder-player'; // Temporarily disabled
+import Sound from 'react-native-sound';
 import Icon from '../components/Icon';
 import { COLORS, TYPOGRAPHY } from '../constants';
 import { formatDate, formatDuration, formatUnlockDate } from '../utils/dateHelpers';
@@ -21,7 +21,8 @@ import { RootStackParamList } from '../types/navigation';
 
 type PlaybackScreenProps = StackScreenProps<RootStackParamList, 'Playback'>;
 
-// const audioPlayer = AudioRecorderPlayer; // Temporarily disabled
+// Enable playback in mix with other audio sources
+Sound.setCategory('Playback');
 
 const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) => {
   const { capsule } = route.params;
@@ -33,7 +34,17 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
   const [audioDuration, setAudioDuration] = useState(capsule.duration);
   
   const videoRef = useRef<any>(null);
+  const audioRef = useRef<Sound | null>(null);
   const hideControlsTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.release();
+      }
+    };
+  }, []);
 
   // Auto-hide controls for video
   const resetHideControlsTimer = () => {
@@ -56,26 +67,40 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
     if (capsule.mediaType === 'video') {
       setIsPlaying(!isPlaying);
     } else {
-      // Handle audio playback - temporarily disabled
-      console.log('Audio playback temporarily disabled');
-      // if (isPlaying) {
-      //   await audioPlayer.pausePlayer();
-      //   setIsPlaying(false);
-      // } else {
-      //   const mediaPath = StorageService.getMediaPath(capsule.filePath);
-      //   await audioPlayer.startPlayer(mediaPath, {});
-      //   setIsPlaying(true);
-      //   
-      //   audioPlayer.addPlayBackListener((e: any) => {
-      //     setAudioPosition(Math.floor(e.currentPosition / 1000));
-      //     setAudioDuration(Math.floor(e.duration / 1000));
-      //     
-      //     if (e.currentPosition >= e.duration) {
-      //       setIsPlaying(false);
-      //       setAudioPosition(0);
-      //     }
-      //   });
-      // }
+      // Handle audio playback
+      if (isPlaying) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        }
+      } else {
+        const mediaPath = StorageService.getMediaPath(capsule.filePath);
+        
+        if (audioRef.current) {
+          audioRef.current.release();
+        }
+        
+        audioRef.current = new Sound(mediaPath, '', (error) => {
+          if (error) {
+            console.error('Failed to load sound:', error);
+            return;
+          }
+          
+          if (audioRef.current) {
+            setAudioDuration(Math.floor(audioRef.current.getDuration()));
+            audioRef.current.play((success) => {
+              if (success) {
+                console.log('Audio playback completed');
+              } else {
+                console.log('Audio playback failed');
+              }
+              setIsPlaying(false);
+              setAudioPosition(0);
+            });
+            setIsPlaying(true);
+          }
+        });
+      }
     }
     
     resetHideControlsTimer();
