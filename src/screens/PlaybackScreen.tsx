@@ -9,7 +9,7 @@ import {
   Share,
 } from 'react-native';
 import Video from 'react-native-video';
-import AudioRecorderPlayer from 'react-native-audio-recorder-player';
+// import AudioRecorderPlayer from 'react-native-audio-recorder-player'; // Temporarily disabled
 import Icon from '../components/Icon';
 import { COLORS, TYPOGRAPHY } from '../constants';
 import { formatDate, formatDuration, formatUnlockDate } from '../utils/dateHelpers';
@@ -21,7 +21,7 @@ import { RootStackParamList } from '../types/navigation';
 
 type PlaybackScreenProps = StackScreenProps<RootStackParamList, 'Playback'>;
 
-const audioPlayer = AudioRecorderPlayer;
+// const audioPlayer = AudioRecorderPlayer; // Temporarily disabled
 
 const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) => {
   const { capsule } = route.params;
@@ -56,25 +56,26 @@ const PlaybackScreen: React.FC<PlaybackScreenProps> = ({ route, navigation }) =>
     if (capsule.mediaType === 'video') {
       setIsPlaying(!isPlaying);
     } else {
-      // Handle audio playback
-      if (isPlaying) {
-        await audioPlayer.pausePlayer();
-        setIsPlaying(false);
-      } else {
-        const mediaPath = StorageService.getMediaPath(capsule.filePath);
-        await audioPlayer.startPlayer(mediaPath, {});
-        setIsPlaying(true);
-        
-        audioPlayer.addPlayBackListener((e: any) => {
-          setAudioPosition(Math.floor(e.currentPosition / 1000));
-          setAudioDuration(Math.floor(e.duration / 1000));
-          
-          if (e.currentPosition >= e.duration) {
-            setIsPlaying(false);
-            setAudioPosition(0);
-          }
-        });
-      }
+      // Handle audio playback - temporarily disabled
+      console.log('Audio playback temporarily disabled');
+      // if (isPlaying) {
+      //   await audioPlayer.pausePlayer();
+      //   setIsPlaying(false);
+      // } else {
+      //   const mediaPath = StorageService.getMediaPath(capsule.filePath);
+      //   await audioPlayer.startPlayer(mediaPath, {});
+      //   setIsPlaying(true);
+      //   
+      //   audioPlayer.addPlayBackListener((e: any) => {
+      //     setAudioPosition(Math.floor(e.currentPosition / 1000));
+      //     setAudioDuration(Math.floor(e.duration / 1000));
+      //     
+      //     if (e.currentPosition >= e.duration) {
+      //       setIsPlaying(false);
+      //       setAudioPosition(0);
+      //     }
+      //   });
+      // }
     }
     
     resetHideControlsTimer();
