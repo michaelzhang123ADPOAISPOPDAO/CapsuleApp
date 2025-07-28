@@ -15,7 +15,8 @@
       "Bash(npm install:*)",
       "Bash(npm run lint)",
       "Bash(npm run lint:*)",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "Bash(timeout 30 npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output test.ios.bundle --minify false)"
     ],
     "deny": []
   }
